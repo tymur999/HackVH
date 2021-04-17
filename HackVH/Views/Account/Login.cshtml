@@ -1,0 +1,86 @@
+﻿@model LoginViewModel
+
+@{
+    ViewData["google-api-key"] = "AIzaSyAtDy4xVJ0y0Boe7p6WOAAVEkTQJZUKmBU";
+    ViewData["google-client-id"] = "596572874618-hqibtnid3aukk5l2jqtu6q5gjbnpgkkv.apps.googleusercontent.com";
+}
+
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+    <title>Login</title>
+</head>
+<body>
+<div>
+    <form id="external" asp-action="ExternalLogin" method="post">
+        <div class="form-group">
+            <input id="token-input" asp-for="ExternalLogin.Token" type="hidden">
+            <button type="button" id="google-login" class="btn btn-primary">Sign in with Google</button>
+        </div>
+    </form>
+    
+    <form id="password" method="post" asp-action="PasswordLogin">
+        <div class="form-group">
+            <label asp-for="PasswordLogin.Email"></label>
+	        <input asp-for="PasswordLogin.Email">
+	        <span asp-validation-for="PasswordLogin.Email" class="text-danger"></span>
+        </div>
+        <div class="form-group">
+            <label asp-for="PasswordLogin.Password"></label>
+	        <input asp-for="PasswordLogin.Password">
+	        <span asp-validation-for="PasswordLogin.Password" class="text-danger"></span>
+        </div>
+	    <div class="form-group">
+		    <button type="submit" class="btn btn-primary">Login</button>
+	    </div>
+	    <div class="form-group">
+		    <div asp-validation-summary="All" class="text-danger"></div>
+	    </div>
+    </form>
+</div>
+</body>
+</html>
+<script async defer src="https://apis.google.com/js/api.js" onload="HandleGoogleApiLibrary()"></script>
+<script type="text/javascript">
+function HandleGoogleApiLibrary(){
+    gapi.load('client:auth2',  {
+    		callback: function() {
+    			// Initialize client & auth libraries
+    			gapi.client.init({
+    		    	apiKey: "@ViewData["google-api-key"]",
+    		    	clientId: "@ViewData["google-client-id"]",
+    		    	scope: 'https://www.googleapis.com/auth/userinfo.profile https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/plus.me'
+    			}).then(
+    				function(success) {
+    			  		// Libraries are initialized successfully
+    		  			// You can now make API calls
+    				}, 
+    				function(error) {
+    					// Error occurred
+    					console.log(error) //to find the reason
+    			  	}
+    			);
+    		},
+    		onerror: function() {
+    			// Failed to load libraries
+    		}
+    	});
+   }
+document.getElementById("google-login").addEventListener("click", (event) => {
+	 event.preventDefault();
+	 gapi.auth2.getAuthInstance().signIn().then(
+    		function(success) {
+    			// Login API call is successful	
+    			console.log(success);
+    			let token = success.tc.id_token;
+    			document.getElementById("token-input").value = token;
+    			document.forms["external"].submit();
+    		},
+    		function(error) {
+    			// Error occurred
+    			console.log(error)//to find the reason
+    		}
+    	);
+	});
+</script>
