@@ -1,18 +1,31 @@
 ﻿@model UserIndexViewModel
 
 @{
-    Layout = null;
+    var loginsText = Model.ExternalLogins.Aggregate("", (current, login) => current + login.LoginProvider);
 }
-
-<!DOCTYPE html>
-
-<html>
-<head>
-    <title>title</title>
-</head>
 <body>
-<div>
-      
+<div class="container">
+    <ul>
+        <li>
+            Id - @Model.User.Id
+        </li>
+        <li>
+            Email - @Model.User.Email
+        </li>
+        <li>
+            Logins - @loginsText
+        </li>
+    </ul>
+    <form asp-action="Delete" method="post" >
+        <div class="form-group">
+            <label>Please type "I want to delete my account" to delete your account</label>
+            <input pattern="(?:^|\W)I want to delete my account(?:$|\W)" maxlength="27" required>
+        </div>
+        <button class="btn btn-danger" type="submit">Delete account</button>
+    </form>
 </div>
 </body>
-</html>
+@section Scripts
+{
+    <script></script>
+}

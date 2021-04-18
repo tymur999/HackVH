@@ -1,16 +1,22 @@
-﻿@model RegisterViewModel
+﻿@using Microsoft.Extensions.Configuration
+@model RegisterViewModel
+@inject IConfiguration _configuration
 
-@{
+@section Meta {
+    <meta name="google-api-key" content=@_configuration["Google:ApiKey"]>
+    <meta name="google-client-id" content=@_configuration["Google:ClientId"]>
 }
 
-<!DOCTYPE html>
-
-<html>
-<head>
-    <title>title</title>
-</head>
 <body>
-<div>
+<div class="container">
+    
+    <form id="external" asp-action="ExternalLogin" method="post">
+        <div class="form-group">
+            <input id="token-input" asp-for="ExternalLogin.Token" type="hidden">
+            <button type="button" id="google-login" class="btn btn-primary">Sign in with Google</button>
+        </div>
+    </form>
+
     <form method="post">
         <div class="form-group">
             <label asp-for="User.Email"></label>
@@ -29,4 +35,9 @@
     </form>
 </div>
 </body>
-</html>
+
+@section Scripts
+{
+    <script src="~/js/google-login.js"></script>
+    <script src="https://apis.google.com/js/platform.js?onload=HandleGoogleApiLibrary" async defer></script>
+}

@@ -26,7 +26,6 @@ namespace HackVH.Controllers
             _mapper = mapper;
         }
         
-        //TODO: Add TempData and use bar in layout to display it
         [Authorize]
         public async Task<IActionResult> Index()
         {
@@ -39,21 +38,28 @@ namespace HackVH.Controllers
             
             return View(new UserIndexViewModel{User = dto, ExternalLogins = logins});
         }
-
+        
         [Authorize]
-        [HttpPost("Index")]
+        [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> IndexDelete()
+        public async Task<IActionResult> Delete()
         {
             var user = await _userManager.GetUserAsync(User);
             
             if(user == null)
                 return View("Error",new ErrorViewModel{RequestId = Activity.Current?.Id});
             
-            await _userManager.DeleteAsync(user);
-            return View("Index");
+            var result = await _userManager.DeleteAsync(user);
+            if (result.Succeeded)
+                await _signInManager.SignOutAsync();
+
+            TempData["Result"] = JsonSerializer.Serialize(
+                new ResultViewModel{Succeeded = true, Response = "Successfully deleted account"});
+            return RedirectPermanent(".");
         }
-        
+
+        public IActionResult AccessDenied() => View();
+
         public async Task<IActionResult> Register()
         {
             //Sign out user
@@ -62,20 +68,23 @@ namespace HackVH.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Register(RegisterViewModel model)
+        public async Task<IActionResult> Register(RegisterViewModel vm)
         {
-            if (!ModelState.IsValid)
-                return View("Register", model);
+            var model = vm.User;
+            if (!TryValidateModel(model))
+            {
+                return View(vm);
+            }
 
-            var user = new IdentityUser {Email = model.User.Email, UserName = model.User.Email};
-            var result = await _userManager.CreateAsync(user, model.User.Password);
+            var user = new IdentityUser {Email = model.Email, UserName = model.Email};
+            var result = await _userManager.CreateAsync(user, model.Password);
             
             if (!result.Succeeded)
             {
                 foreach(var error in result.Errors)
                     ModelState.AddModelError(string.Empty, error.Description);
 
-                return View("Register", model);
+                return View(vm);
             }
 
             TempData["Result"] = JsonSerializer.Serialize(
